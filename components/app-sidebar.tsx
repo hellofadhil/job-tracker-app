@@ -39,10 +39,10 @@ const data = {
           title: "Applications",
           url: "/dashboard/applications",
         },
-        {
-          title: "Auth Pages",
-          url: "/login",
-        },
+        // {
+        //   title: "Auth Pages",
+        //   url: "/login",
+        // },
       ],
     },
     // {

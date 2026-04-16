@@ -1,9 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import { IconDeviceFloppy } from '@tabler/icons-react'
+import {
+  IconCalendarEvent,
+  IconDeviceFloppy,
+  IconPlus,
+  IconTimeline,
+  IconTrash,
+} from '@tabler/icons-react'
 import type {
   JobApplicationFormValues,
+  JobApplicationTimelineCategory,
+  JobApplicationTimelineEntry,
   JobApplicationSource,
   JobApplicationStatus,
   JobApplicationType,
@@ -12,6 +20,7 @@ import type {
 import {
   jobApplicationSources,
   jobApplicationStatuses,
+  jobApplicationTimelineCategories,
   jobApplicationTypes,
   workModels,
 } from '@/lib/job-applications'
@@ -49,6 +58,7 @@ export const defaultApplicationFormValues: ApplicationFormValues = {
   notes: '',
   jobLink: '',
   recruiterContact: '',
+  timeline: [],
 }
 
 type ApplicationFormProps = {
@@ -96,6 +106,42 @@ export function ApplicationForm({
     setForm((current) => ({
       ...current,
       [key]: value,
+    }))
+  }
+
+  function addTimelineEntry() {
+    setForm((current) => ({
+      ...current,
+      timeline: [
+        ...current.timeline,
+        {
+          id: crypto.randomUUID(),
+          date: current.followUpDate || current.applicationDate,
+          category: 'Follow-up',
+          title: '',
+          description: '',
+        },
+      ],
+    }))
+  }
+
+  function updateTimelineEntry(
+    entryId: string,
+    key: keyof JobApplicationTimelineEntry,
+    value: string,
+  ) {
+    setForm((current) => ({
+      ...current,
+      timeline: current.timeline.map((entry) =>
+        entry.id === entryId ? { ...entry, [key]: value } : entry,
+      ),
+    }))
+  }
+
+  function removeTimelineEntry(entryId: string) {
+    setForm((current) => ({
+      ...current,
+      timeline: current.timeline.filter((entry) => entry.id !== entryId),
     }))
   }
 
@@ -324,6 +370,142 @@ export function ApplicationForm({
                 placeholder="Paste the job summary, interview notes, application strategy, or reminders here."
               />
             </Field>
+
+            <div className="grid gap-4 rounded-2xl border border-border/80 bg-muted/20 p-4 dark:border-white/[0.05] dark:bg-[#141414]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <IconTimeline className="size-4 text-primary" />
+                    <Label className="text-base font-semibold">
+                      Activity Timeline
+                    </Label>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Track recruiter replies, interviews, assessments, and follow-up actions in chronological order.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addTimelineEntry}
+                >
+                  <IconPlus className="size-4" />
+                  Add Activity
+                </Button>
+              </div>
+
+              {form.timeline.length ? (
+                <div className="grid gap-3">
+                  {form.timeline.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      className="grid gap-3 rounded-2xl border border-border/80 bg-background/80 p-4 dark:border-white/[0.05] dark:bg-[#111214]"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-sm font-medium">
+                          Activity {index + 1}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => removeTimelineEntry(entry.id)}
+                        >
+                          <IconTrash className="size-4" />
+                          Remove
+                        </Button>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+                        <Field>
+                          <Label htmlFor={`timeline-date-${entry.id}`}>
+                            Date
+                          </Label>
+                          <Input
+                            id={`timeline-date-${entry.id}`}
+                            type="date"
+                            value={entry.date}
+                            onChange={(event) =>
+                              updateTimelineEntry(entry.id, 'date', event.target.value)
+                            }
+                            className={fieldClassName}
+                          />
+                        </Field>
+                        <Field>
+                          <Label htmlFor={`timeline-category-${entry.id}`}>
+                            Category
+                          </Label>
+                          <Select
+                            value={entry.category}
+                            onValueChange={(value) =>
+                              updateTimelineEntry(
+                                entry.id,
+                                'category',
+                                value as JobApplicationTimelineCategory,
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              id={`timeline-category-${entry.id}`}
+                              className={selectTriggerClassName}
+                            >
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {jobApplicationTimelineCategories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      </div>
+                      <div className="grid gap-3">
+                        <Field>
+                          <Label htmlFor={`timeline-title-${entry.id}`}>
+                            Title
+                          </Label>
+                          <Input
+                            id={`timeline-title-${entry.id}`}
+                            value={entry.title}
+                            onChange={(event) =>
+                              updateTimelineEntry(entry.id, 'title', event.target.value)
+                            }
+                            className={fieldClassName}
+                            placeholder="Interview scheduled"
+                          />
+                        </Field>
+                      </div>
+                      <Field>
+                        <Label htmlFor={`timeline-description-${entry.id}`}>
+                          Description
+                        </Label>
+                        <Textarea
+                          id={`timeline-description-${entry.id}`}
+                          value={entry.description}
+                          onChange={(event) =>
+                            updateTimelineEntry(
+                              entry.id,
+                              'description',
+                              event.target.value,
+                            )
+                          }
+                          className={`min-h-24 ${fieldClassName}`}
+                          placeholder="Add practical context: who replied, what changed, and what you need to do next."
+                        />
+                      </Field>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border/70 bg-background/60 p-4 text-sm text-muted-foreground dark:border-white/[0.05] dark:bg-[#111214]">
+                  <IconCalendarEvent className="mt-0.5 size-4 shrink-0" />
+                  No activity yet. Add entries for recruiter replies, interviews, assessments, or important follow-up actions.
+                </div>
+              )}
+            </div>
 
             <div className="flex justify-end pt-2">
               <Button

@@ -45,6 +45,7 @@ import {
   IconPlus,
   IconProgress,
   IconSearch,
+  IconTimeline,
   IconTrendingUp,
   IconUsers,
 } from '@tabler/icons-react'
@@ -67,6 +68,7 @@ import { z } from 'zod'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   jobApplicationStatuses,
+  type JobApplicationTimelineCategory,
   type JobApplicationSource,
   type JobApplicationStatus,
 } from '@/lib/job-applications'
@@ -161,6 +163,24 @@ const applicationSchema = z.object({
   notes: z.string(),
   jobLink: z.string(),
   recruiterContact: z.string(),
+  timeline: z.array(
+    z.object({
+      id: z.string(),
+      date: z.string(),
+      category: z.enum([
+        'Applied',
+        'Recruiter Reply',
+        'Interview',
+        'Assessment',
+        'Offer',
+        'Follow-up',
+        'Status Change',
+        'Rejection',
+      ]),
+      title: z.string(),
+      description: z.string(),
+    }),
+  ),
 })
 
 type ApplicationRecord = z.infer<typeof applicationSchema>
@@ -227,6 +247,29 @@ function getSourceBadge(source: JobApplicationSource) {
       return 'border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300'
     default:
       return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+  }
+}
+
+function getTimelineCategoryBadge(category: JobApplicationTimelineCategory) {
+  switch (category) {
+    case 'Applied':
+      return 'border-slate-500/25 bg-slate-500/10 text-slate-700 dark:text-slate-300'
+    case 'Recruiter Reply':
+      return 'border-cyan-500/25 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
+    case 'Interview':
+      return 'border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+    case 'Assessment':
+      return 'border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300'
+    case 'Offer':
+      return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+    case 'Follow-up':
+      return 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+    case 'Status Change':
+      return 'border-indigo-500/25 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+    case 'Rejection':
+      return 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+    default:
+      return 'border-border bg-muted text-muted-foreground'
   }
 }
 
@@ -388,6 +431,49 @@ function ApplicationViewer({
               defaultValue={item.notes}
               className="min-h-32"
             />
+          </div>
+
+          <div className="grid gap-3">
+            <div className="flex items-center gap-2">
+              <IconTimeline className="size-4 text-primary" />
+              <Label>Activity Timeline</Label>
+            </div>
+            {item.timeline.length ? (
+              <div className="grid gap-3">
+                {[...item.timeline]
+                  .sort((left, right) => right.date.localeCompare(left.date))
+                  .map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="rounded-xl border bg-muted/20 p-4"
+                    >
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2">
+                          <Badge
+                            variant="outline"
+                            className={getTimelineCategoryBadge(entry.category)}
+                          >
+                            {entry.category}
+                          </Badge>
+                          <div className="font-medium">{entry.title}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground sm:pt-1">
+                          {formatDate(entry.date)}
+                        </div>
+                      </div>
+                      {entry.description ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {entry.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed bg-muted/10 p-4 text-sm text-muted-foreground">
+                No activity logged yet.
+              </div>
+            )}
           </div>
 
           <div className="grid gap-3">

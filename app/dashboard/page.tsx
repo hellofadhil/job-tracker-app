@@ -11,7 +11,10 @@ import {
   IconClockExclamation,
 } from '@tabler/icons-react'
 import { useJobApplications } from '@/hooks/use-job-applications'
-import type { JobApplication, JobApplicationStatus } from '@/lib/job-applications'
+import type {
+  JobApplication,
+  JobApplicationStatus,
+} from '@/lib/job-applications'
 import {
   Breadcrumb,
   BreadcrumbItem,

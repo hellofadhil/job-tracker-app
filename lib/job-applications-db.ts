@@ -9,7 +9,12 @@ import {
   type Unsubscribe,
 } from 'firebase/database'
 import { database } from '@/lib/firebase'
-import type { JobApplication, JobApplicationFormValues } from '@/lib/job-applications'
+import {
+  createTimelineEntry,
+  ensureTimelineEntries,
+  type JobApplication,
+  type JobApplicationFormValues,
+} from '@/lib/job-applications'
 
 type StoredJobApplication = JobApplicationFormValues & {
   id?: string
@@ -44,6 +49,7 @@ function normalizeApplication(
     notes: value.notes,
     jobLink: value.jobLink,
     recruiterContact: value.recruiterContact,
+    timeline: ensureTimelineEntries(value.timeline),
   }
 }
 
@@ -103,9 +109,22 @@ export async function createJobApplication(
     throw new Error('Failed to generate application id.')
   }
 
+  const timeline = ensureTimelineEntries(values.timeline)
+  if (!timeline.length) {
+    timeline.push(
+      createTimelineEntry(
+        values.applicationDate,
+        'Applied',
+        'Application submitted',
+        `Application created in tracker for ${values.companyName} - ${values.jobTitle}.`,
+      ),
+    )
+  }
+
   const payload: StoredJobApplication = {
     ...values,
     followUpDate: values.followUpDate ?? '',
+    timeline,
     id,
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -121,9 +140,32 @@ export async function updateJobApplication(
   applicationId: string,
   values: JobApplicationFormValues,
 ) {
+  const currentApplication = await getJobApplication(userId, applicationId)
+  const timeline = ensureTimelineEntries(values.timeline)
+
+  if (
+    currentApplication &&
+    currentApplication.status !== values.status &&
+    !timeline.some(
+      (entry) =>
+        entry.title === `Status moved to ${values.status}` &&
+        entry.description.includes(currentApplication.status),
+    )
+  ) {
+    timeline.push(
+      createTimelineEntry(
+        new Date().toISOString().slice(0, 10),
+        'Status Change',
+        `Status moved to ${values.status}`,
+        `Application status changed from ${currentApplication.status} to ${values.status}.`,
+      ),
+    )
+  }
+
   await update(applicationItemRef(userId, applicationId), {
     ...values,
     followUpDate: values.followUpDate ?? '',
+    timeline,
     id: applicationId,
     updatedAt: Date.now(),
   })
@@ -134,8 +176,29 @@ export async function updateJobApplicationStatus(
   applicationId: string,
   status: JobApplication['status'],
 ) {
+  const currentApplication = await getJobApplication(userId, applicationId)
+
+  if (!currentApplication) {
+    throw new Error('Application not found.')
+  }
+
+  if (currentApplication.status === status) {
+    return
+  }
+
+  const timeline = [
+    ...ensureTimelineEntries(currentApplication.timeline),
+    createTimelineEntry(
+      new Date().toISOString().slice(0, 10),
+      'Status Change',
+      `Status moved to ${status}`,
+      `Application status changed from ${currentApplication.status} to ${status} from the pipeline board.`,
+    ),
+  ]
+
   await update(applicationItemRef(userId, applicationId), {
     status,
+    timeline,
     updatedAt: Date.now(),
   })
 }
