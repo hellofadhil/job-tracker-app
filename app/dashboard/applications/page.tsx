@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,8 +10,14 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { JobApplicationsTable } from '@/components/job-applications-table'
+import { defaultLocale, localeCookieName, normalizeLocale, tFor } from '@/lib/i18n'
 
-export default function ApplicationsPage() {
+export default async function ApplicationsPage() {
+  const cookieStore = await cookies()
+  const locale = normalizeLocale(
+    cookieStore.get(localeCookieName)?.value ?? defaultLocale,
+  )
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/80 backdrop-blur">
@@ -23,11 +30,13 @@ export default function ApplicationsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">
+                  {tFor(locale, 'common.dashboard')}
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Applications</BreadcrumbPage>
+                <BreadcrumbPage>{tFor(locale, 'common.applications')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

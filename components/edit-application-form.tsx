@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuth } from '@/components/auth-provider'
+import { useI18n } from '@/components/locale-provider'
 import {
   ApplicationForm,
   type ApplicationFormValues,
@@ -20,6 +21,7 @@ export function EditApplicationForm({
 }) {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { t } = useI18n()
   const [initialValues, setInitialValues] =
     React.useState<ApplicationFormValues | null>(null)
   const [loading, setLoading] = React.useState(true)
@@ -43,7 +45,7 @@ export function EditApplicationForm({
         }
 
         if (!application) {
-          toast.error('Application not found.')
+          toast.error(t('applications.notFoundError'))
           router.push('/dashboard/applications')
           return
         }
@@ -60,7 +62,7 @@ export function EditApplicationForm({
         toast.error(
           error instanceof Error
             ? error.message
-            : 'Failed to load application.',
+            : t('applications.loadFailed'),
         )
         router.push('/dashboard/applications')
       })
@@ -77,22 +79,22 @@ export function EditApplicationForm({
       }
 
       await updateJobApplication(user.uid, applicationId, values)
-      toast.success('Application updated successfully.')
+      toast.success(t('applications.updateSuccess'))
       router.push('/dashboard/applications')
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to update application.'
+        error instanceof Error ? error.message : t('applications.updateFailed')
       toast.error(message)
     }
   }
 
   return (
     <ApplicationForm
-      badgeLabel="Tracker Update"
-      title="Edit application"
-      description="Update the role, recruiter contact, salary range, and notes so your tracker stays current across every hiring stage."
-      submitLabel="Update Application"
-      submittingLabel="Updating..."
+      badgeLabel={t('form.trackerUpdate')}
+      title={t('form.editTitle')}
+      description={t('form.editDescription')}
+      submitLabel={t('form.updateApplication')}
+      submittingLabel={t('form.updating')}
       initialValues={initialValues ?? undefined}
       onSubmit={handleSubmit}
       loading={authLoading || loading}

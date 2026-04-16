@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { useI18n } from '@/components/locale-provider'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -57,23 +58,22 @@ function GoogleIcon() {
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useI18n()
   const redirect = searchParams.get('redirect') || '/dashboard'
   const redirectQuery = `?redirect=${encodeURIComponent(redirect)}`
   const [isPending, setIsPending] = React.useState(false)
   const [isGooglePending, setIsGooglePending] = React.useState(false)
 
   const titleMap: Record<AuthMode, string> = {
-    login: 'Welcome back',
-    register: 'Create your account',
-    'forgot-password': 'Reset your password',
+    login: t('auth.loginTitle'),
+    register: t('auth.registerTitle'),
+    'forgot-password': t('auth.forgotTitle'),
   }
 
   const descriptionMap: Record<AuthMode, string> = {
-    login: 'Masuk ke dashboard job tracker dengan email atau akun Google.',
-    register:
-      'Buat akun baru untuk mulai simpan dan track progress lamaran kerja.',
-    'forgot-password':
-      'Masukkan email akunmu, lalu kami kirim link reset password.',
+    login: t('auth.loginDescription'),
+    register: t('auth.registerDescription'),
+    'forgot-password': t('auth.forgotDescription'),
   }
 
   async function handleLoginSubmit(formData: FormData) {
@@ -84,7 +84,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      toast.success('Login berhasil.')
+      toast.success(t('auth.loginSuccess'))
       router.replace(redirect)
     } catch (error) {
       toast.error(getFirebaseAuthErrorMessage(error))
@@ -111,7 +111,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         await updateProfile(credential.user, { displayName: name })
       }
 
-      toast.success('Akun berhasil dibuat.')
+      toast.success(t('auth.registerSuccess'))
       router.replace(redirect)
     } catch (error) {
       toast.error(getFirebaseAuthErrorMessage(error))
@@ -127,7 +127,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       await sendPasswordResetEmail(auth, email)
-      toast.success('Link reset password sudah dikirim ke email kamu.')
+      toast.success(t('auth.resetSent'))
       router.replace('/login')
     } catch (error) {
       toast.error(getFirebaseAuthErrorMessage(error))
@@ -141,7 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       await signInWithPopup(auth, googleProvider)
-      toast.success('Login Google berhasil.')
+      toast.success(t('auth.googleSuccess'))
       router.replace(redirect)
     } catch (error) {
       toast.error(getFirebaseAuthErrorMessage(error))
@@ -165,7 +165,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <Card className="relative z-10 w-full max-w-md border-border/80 bg-card/90 shadow-2xl backdrop-blur">
         <CardHeader className="space-y-2">
           <div className="inline-flex w-fit rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-primary">
-            My Job Tracker
+            {t('auth.badge')}
           </div>
           <CardTitle className="text-2xl">{titleMap[mode]}</CardTitle>
           <CardDescription>{descriptionMap[mode]}</CardDescription>
@@ -184,7 +184,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               ) : (
                 <GoogleIcon />
               )}
-              Continue with Google
+              {t('auth.continueGoogle')}
             </Button>
           )}
 
@@ -195,7 +195,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  atau pakai email
+                  {t('auth.orUseEmail')}
                 </span>
               </div>
             </div>
@@ -204,11 +204,11 @@ export function AuthForm({ mode }: AuthFormProps) {
           <form action={actionMap[mode]} className="space-y-4">
             {mode === 'register' && (
               <div className="space-y-2">
-                <Label htmlFor="name">Nama</Label>
+                <Label htmlFor="name">{t('auth.name')}</Label>
                 <Input
                   id="name"
                   name="name"
-                  placeholder="Nama lengkap"
+                  placeholder={t('auth.fullName')}
                   autoComplete="name"
                   required
                 />
@@ -216,7 +216,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -230,13 +230,13 @@ export function AuthForm({ mode }: AuthFormProps) {
             {mode !== 'forgot-password' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('auth.password')}</Label>
                   {mode === 'login' && (
                     <Link
                       href={`/forgot-password${redirectQuery}`}
                       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      Forgot password?
+                      {t('auth.forgotPassword')}
                     </Link>
                   )}
                 </div>
@@ -244,7 +244,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="Minimal 6 karakter"
+                  placeholder={t('auth.minPassword')}
                   autoComplete={
                     mode === 'register' ? 'new-password' : 'current-password'
                   }
@@ -255,43 +255,43 @@ export function AuthForm({ mode }: AuthFormProps) {
 
             <Button className="h-11 w-full" disabled={isPending || isGooglePending}>
               {isPending && <LoaderCircle className="animate-spin" />}
-              {mode === 'login' && 'Login'}
-              {mode === 'register' && 'Register'}
-              {mode === 'forgot-password' && 'Send reset link'}
+              {mode === 'login' && t('auth.login')}
+              {mode === 'register' && t('auth.register')}
+              {mode === 'forgot-password' && t('auth.sendReset')}
             </Button>
           </form>
 
           <div className="text-center text-sm text-muted-foreground">
             {mode === 'login' && (
               <>
-                Belum punya akun?{' '}
+                {t('auth.noAccount')}{' '}
                 <Link
                   href={`/register${redirectQuery}`}
                   className="font-medium text-foreground"
                 >
-                  Register
+                  {t('auth.register')}
                 </Link>
               </>
             )}
             {mode === 'register' && (
               <>
-                Sudah punya akun?{' '}
+                {t('auth.haveAccount')}{' '}
                 <Link
                   href={`/login${redirectQuery}`}
                   className="font-medium text-foreground"
                 >
-                  Login
+                  {t('auth.login')}
                 </Link>
               </>
             )}
             {mode === 'forgot-password' && (
               <>
-                Sudah ingat password?{' '}
+                {t('auth.rememberPassword')}{' '}
                 <Link
                   href={`/login${redirectQuery}`}
                   className="font-medium text-foreground"
                 >
-                  Kembali ke login
+                  {t('auth.backToLogin')}
                 </Link>
               </>
             )}

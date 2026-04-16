@@ -21,6 +21,7 @@ import {
 export function NavMain({
   items,
   pathname,
+  groupLabel,
 }: {
   items: {
     title: string
@@ -33,10 +34,11 @@ export function NavMain({
     }[]
   }[]
   pathname: string
+  groupLabel: string
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

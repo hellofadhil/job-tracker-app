@@ -16,6 +16,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar'
+import { useI18n } from '@/components/locale-provider'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +45,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { t } = useI18n()
   const initials = React.useMemo(() => {
     return user.name
       .split(' ')
@@ -56,9 +58,9 @@ export function NavUser({
   async function handleLogout() {
     try {
       await signOut(auth)
-      toast.success('Kamu sudah logout.')
+      toast.success(t('user.logoutSuccess'))
     } catch {
-      toast.error('Logout gagal. Coba lagi.')
+      toast.error(t('user.logoutFailed'))
     }
   }
 
@@ -104,28 +106,28 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles />
-                Upgrade to Pro
+                {t('user.upgrade')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Account
+                {t('user.account')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />
-                Billing
+                {t('user.billing')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
-                Notifications
+                {t('user.notifications')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Log out
+              {t('user.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

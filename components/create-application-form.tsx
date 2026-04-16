@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuth } from '@/components/auth-provider'
+import { useI18n } from '@/components/locale-provider'
 import {
   ApplicationForm,
   type ApplicationFormValues,
@@ -12,6 +13,7 @@ import { createJobApplication } from '@/lib/job-applications-db'
 export function CreateApplicationForm() {
   const router = useRouter()
   const { user } = useAuth()
+  const { t } = useI18n()
 
   async function handleSubmit(values: ApplicationFormValues) {
     try {
@@ -20,22 +22,22 @@ export function CreateApplicationForm() {
       }
 
       await createJobApplication(user.uid, values)
-      toast.success('Application created successfully.')
+      toast.success(t('applications.createSuccess'))
       router.push('/dashboard/applications')
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to create application.'
+        error instanceof Error ? error.message : t('applications.createFailed')
       toast.error(message)
     }
   }
 
   return (
     <ApplicationForm
-      badgeLabel="New Tracker Entry"
-      title="Create application"
-      description="Add a new job application with source, salary, recruiter details, and notes so every opportunity stays organized from first apply to final outcome."
-      submitLabel="Save Application"
-      submittingLabel="Saving..."
+      badgeLabel={t('form.newTrackerEntry')}
+      title={t('form.createTitle')}
+      description={t('form.createDescription')}
+      submitLabel={t('form.saveApplication')}
+      submittingLabel={t('form.saving')}
       onSubmit={handleSubmit}
     />
   )

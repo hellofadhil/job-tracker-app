@@ -65,6 +65,7 @@ import {
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { useI18n } from '@/components/locale-provider'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   jobApplicationStatuses,
@@ -72,6 +73,14 @@ import {
   type JobApplicationSource,
   type JobApplicationStatus,
 } from '@/lib/job-applications'
+import {
+  getLocaleDateFormat,
+  translateJobType,
+  translateSource,
+  translateStatus,
+  translateTimelineCategory,
+  translateWorkModel,
+} from '@/lib/i18n'
 import {
   deleteJobApplication,
   updateJobApplicationStatus,
@@ -203,8 +212,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-US', {
+function formatDate(date: string, locale = 'en-US') {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -298,6 +307,8 @@ function ApplicationViewer({
   onEdit: (application: ApplicationRecord) => void | Promise<void>
 }) {
   const isMobile = useIsMobile()
+  const { locale, t } = useI18n()
+  const dateLocale = getLocaleDateFormat(locale)
 
   return (
     <Drawer direction={isMobile ? 'bottom' : 'right'}>
@@ -319,10 +330,10 @@ function ApplicationViewer({
               {item.status === 'Offer' && (
                 <IconCircleCheckFilled className="size-3.5 fill-current" />
               )}
-              {item.status}
+              {translateStatus(locale, item.status)}
             </Badge>
             <Badge className={getSourceBadge(item.source)} variant="outline">
-              {item.source}
+              {translateSource(locale, item.source)}
             </Badge>
           </div>
           <DrawerTitle className="text-xl">
@@ -389,43 +400,43 @@ function ApplicationViewer({
           <div className="grid gap-4 md:grid-cols-2">
             <InfoCard
               icon={<IconBuildingSkyscraper className="size-4" />}
-              label="Company Name"
+              label={t('applications.companyName')}
               value={item.companyName}
             />
             <InfoCard
               icon={<IconBriefcase className="size-4" />}
-              label="Job Title"
+              label={t('applications.jobTitle')}
               value={item.jobTitle}
             />
-            <InfoCard label="Job Type" value={item.jobType} />
-            <InfoCard label="Work Model" value={item.workModel} />
+            <InfoCard label={t('applications.jobType')} value={translateJobType(locale, item.jobType)} />
+            <InfoCard label={t('applications.workModel')} value={translateWorkModel(locale, item.workModel)} />
             <InfoCard
               icon={<IconMapPin className="size-4" />}
-              label="Location"
+              label={t('applications.location')}
               value={item.location}
             />
-            <InfoCard label="Salary" value={item.salaryRange} />
-            <InfoCard label="Source" value={item.source} />
+            <InfoCard label={t('applications.salary')} value={item.salaryRange} />
+            <InfoCard label={t('applications.source')} value={translateSource(locale, item.source)} />
             <InfoCard
               icon={<IconCalendarEvent className="size-4" />}
-              label="Application Date"
-              value={formatDate(item.applicationDate)}
+              label={t('applications.appliedOn')}
+              value={formatDate(item.applicationDate, dateLocale)}
             />
             <InfoCard
               icon={<IconCalendarEvent className="size-4" />}
-              label="Follow-up Date"
-              value={item.followUpDate ? formatDate(item.followUpDate) : 'Not set'}
+              label={t('applications.followUpDate')}
+              value={item.followUpDate ? formatDate(item.followUpDate, dateLocale) : t('applications.notSet')}
             />
-            <InfoCard label="Status" value={item.status} />
+            <InfoCard label={t('applications.status')} value={translateStatus(locale, item.status)} />
             <InfoCard
               icon={<IconUsers className="size-4" />}
-              label="Recruiter / HR"
+              label={t('applications.recruiter')}
               value={item.recruiterContact}
             />
           </div>
 
           <div className="grid gap-3">
-            <Label htmlFor={`notes-${item.id}`}>Job Description / Notes</Label>
+            <Label htmlFor={`notes-${item.id}`}>{t('applications.notes')}</Label>
             <Textarea
               id={`notes-${item.id}`}
               defaultValue={item.notes}
@@ -436,7 +447,7 @@ function ApplicationViewer({
           <div className="grid gap-3">
             <div className="flex items-center gap-2">
               <IconTimeline className="size-4 text-primary" />
-              <Label>Activity Timeline</Label>
+              <Label>{t('applications.activityTimeline')}</Label>
             </div>
             {item.timeline.length ? (
               <div className="grid gap-3">
@@ -453,12 +464,12 @@ function ApplicationViewer({
                             variant="outline"
                             className={getTimelineCategoryBadge(entry.category)}
                           >
-                            {entry.category}
+                            {translateTimelineCategory(locale, entry.category)}
                           </Badge>
                           <div className="font-medium">{entry.title}</div>
                         </div>
                         <div className="text-xs text-muted-foreground sm:pt-1">
-                          {formatDate(entry.date)}
+                          {formatDate(entry.date, dateLocale)}
                         </div>
                       </div>
                       {entry.description ? (
@@ -471,13 +482,13 @@ function ApplicationViewer({
               </div>
             ) : (
               <div className="rounded-xl border border-dashed bg-muted/10 p-4 text-sm text-muted-foreground">
-                No activity logged yet.
+                {t('applications.noActivity')}
               </div>
             )}
           </div>
 
           <div className="grid gap-3">
-            <Label>Job Link</Label>
+            <Label>{t('applications.jobLink')}</Label>
             <Link
               href={item.jobLink}
               target="_blank"
@@ -485,16 +496,16 @@ function ApplicationViewer({
               className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               <IconLink className="size-4" />
-              Open job posting
+              {t('applications.openJobPosting')}
             </Link>
           </div>
         </div>
         <DrawerFooter>
           <Button onClick={() => void onEdit(item)}>
-            Edit application
+            {t('applications.editApplication')}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
+            <Button variant="outline">{t('common.done')}</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
@@ -554,6 +565,7 @@ function KanbanCard({
   application: ApplicationRecord
   onEdit: (application: ApplicationRecord) => void
 }) {
+  const { locale, t } = useI18n()
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: application.id,
@@ -585,14 +597,14 @@ function KanbanCard({
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Badge variant="outline" className="px-1.5 text-[10px] text-muted-foreground">
-          {application.workModel}
+          {translateWorkModel(locale, application.workModel)}
         </Badge>
         <Badge variant="outline" className="px-1.5 text-[10px] text-muted-foreground">
-          {application.jobType}
+          {translateJobType(locale, application.jobType)}
         </Badge>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-        <span>{formatDate(application.applicationDate)}</span>
+        <span>{formatDate(application.applicationDate, getLocaleDateFormat(locale))}</span>
         {application.followUpDate ? (
           <>
             <span>•</span>
@@ -613,6 +625,7 @@ function KanbanColumn({
   items: ApplicationRecord[]
   onEdit: (application: ApplicationRecord) => void
 }) {
+  const { locale, t } = useI18n()
   const { setNodeRef, isOver } = useDroppable({
     id: status,
     data: {
@@ -625,7 +638,9 @@ function KanbanColumn({
     <div className="flex w-[272px] shrink-0 flex-col gap-3">
       <div className="flex items-center justify-between px-1">
         <div>
-          <div className="text-base font-semibold tracking-tight">{status}</div>
+          <div className="text-base font-semibold tracking-tight">
+            {translateStatus(locale, status)}
+          </div>
           <div className="text-xs text-muted-foreground">
             {items.length} application{items.length === 1 ? '' : 's'}
           </div>
@@ -664,7 +679,7 @@ function KanbanColumn({
           ))
         ) : (
           <div className="flex min-h-[140px] items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground dark:border-white/[0.05]">
-            Drop application here
+            {t('applications.dropHere')}
           </div>
         )}
       </div>
@@ -731,6 +746,7 @@ function SummaryCard({
 
 export function JobApplicationsTable() {
   const router = useRouter()
+  const { locale, t } = useI18n()
   const { applications, loading, error, user } = useJobApplications()
   const [data, setData] = React.useState<ApplicationRecord[]>([])
   const [pendingDelete, setPendingDelete] =
@@ -803,7 +819,7 @@ export function JobApplicationsTable() {
   const handleDelete = React.useCallback(
     (application: ApplicationRecord) => {
       if (!user) {
-        toast.error('You need to be signed in to delete an application.')
+        toast.error(t('applications.deleteFailed'))
         return
       }
 
@@ -821,13 +837,13 @@ export function JobApplicationsTable() {
 
     try {
       await deleteJobApplication(user.uid, pendingDelete.id)
-      toast.success(`${pendingDelete.companyName} deleted.`)
+      toast.success(t('applications.deleteSuccess'))
       setPendingDelete(null)
     } catch (nextError) {
       toast.error(
         nextError instanceof Error
           ? nextError.message
-          : `Failed to delete ${pendingDelete.companyName}.`,
+          : t('applications.deleteFailed'),
       )
     } finally {
       setIsDeleting(false)
@@ -872,7 +888,7 @@ export function JobApplicationsTable() {
       try {
         await updateJobApplicationStatus(user.uid, applicationId, nextStatus)
         toast.success(
-          `${currentApplication.companyName} moved to ${nextStatus}.`,
+          `${currentApplication.companyName} ${t('applications.status')} ${translateStatus(locale, nextStatus)}.`,
         )
       } catch (nextError) {
         setData((current) =>
@@ -885,7 +901,7 @@ export function JobApplicationsTable() {
         toast.error(
           nextError instanceof Error
             ? nextError.message
-            : `Failed to move ${currentApplication.companyName}.`,
+            : t('applications.statusUpdateFailed'),
         )
       } finally {
         setIsUpdatingStatus(false)
@@ -939,32 +955,33 @@ export function JobApplicationsTable() {
       },
       {
         accessorKey: 'jobType',
-        header: 'Job Type',
+        header: t('applications.jobType'),
         cell: ({ row }) => (
           <Badge variant="outline" className="px-2">
-            {row.original.jobType}
+            {translateJobType(locale, row.original.jobType)}
           </Badge>
         ),
       },
       {
         accessorKey: 'workModel',
-        header: 'Work Model',
+        header: t('applications.workModel'),
+        cell: ({ row }) => translateWorkModel(locale, row.original.workModel),
       },
       {
         accessorKey: 'location',
-        header: 'Location',
+        header: t('applications.location'),
         cell: ({ row }) => (
           <div className="max-w-40 truncate">{row.original.location}</div>
         ),
       },
       {
         accessorKey: 'applicationDate',
-        header: 'Applied On',
-        cell: ({ row }) => formatDate(row.original.applicationDate),
+        header: t('applications.appliedOn'),
+        cell: ({ row }) => formatDate(row.original.applicationDate, getLocaleDateFormat(locale)),
       },
       {
         accessorKey: 'salaryRange',
-        header: 'Salary',
+        header: t('applications.salary'),
         cell: ({ row }) => (
           <div className="min-w-[220px] whitespace-nowrap text-sm">
             {row.original.salaryRange}
@@ -973,16 +990,16 @@ export function JobApplicationsTable() {
       },
       {
         accessorKey: 'source',
-        header: 'Source',
+        header: t('applications.source'),
         cell: ({ row }) => (
           <Badge variant="outline" className={getSourceBadge(row.original.source)}>
-            {row.original.source}
+            {translateSource(locale, row.original.source)}
           </Badge>
         ),
       },
       {
         accessorKey: 'notes',
-        header: 'Job Description / Notes',
+        header: t('applications.notes'),
         cell: ({ row }) => (
           <div className="max-w-72 whitespace-normal text-sm text-muted-foreground">
             {truncateText(row.original.notes, 45)}
@@ -991,7 +1008,7 @@ export function JobApplicationsTable() {
       },
       {
         accessorKey: 'jobLink',
-        header: 'Job Link',
+        header: t('applications.jobLink'),
         cell: ({ row }) => (
           <Link
             href={row.original.jobLink}
@@ -1000,13 +1017,13 @@ export function JobApplicationsTable() {
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             <IconLink className="size-4" />
-            Open
+            {t('common.open')}
           </Link>
         ),
       },
       {
         accessorKey: 'recruiterContact',
-        header: 'Recruiter / HR',
+        header: t('applications.recruiter'),
         cell: ({ row }) => (
           <div className="max-w-56 whitespace-normal text-sm">
             {row.original.recruiterContact}
@@ -1015,13 +1032,13 @@ export function JobApplicationsTable() {
       },
       {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('applications.status'),
         cell: ({ row }) => (
           <Badge variant="outline" className={getStatusBadge(row.original.status)}>
             {row.original.status === 'Offer' && (
               <IconCircleCheckFilled className="size-3.5 fill-current" />
             )}
-            {row.original.status}
+            {translateStatus(locale, row.original.status)}
           </Badge>
         ),
       },
@@ -1037,18 +1054,18 @@ export function JobApplicationsTable() {
                 className="size-8 text-muted-foreground data-[state=open]:bg-muted"
               >
                 <IconDotsVertical className="size-4" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t('common.open')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem
                 onClick={() => void handleOpenEdit(row.original)}
               >
-                Edit
+                {t('common.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={row.original.jobLink} target="_blank" rel="noreferrer">
-                  Open job post
+                  {t('applications.openJobPosting')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -1056,14 +1073,14 @@ export function JobApplicationsTable() {
                 variant="destructive"
                 onClick={() => void handleDelete(row.original)}
               >
-                Delete
+                {t('common.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleDelete, handleOpenEdit],
+    [handleDelete, handleOpenEdit, locale, t],
   )
 
   const table = useReactTable({
@@ -1107,40 +1124,39 @@ export function JobApplicationsTable() {
         <div className="flex flex-col gap-4 px-4 lg:px-6">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">
-            Job applications tracker
+            {t('applications.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Monitor every submission, recruiter contact, salary range, and job
-            note from one table.
+            {t('applications.description')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 @xl/main:grid-cols-2 @4xl/main:grid-cols-3 @6xl/main:grid-cols-4">
           <SummaryCard
-            label="Total Applications"
+            label={t('applications.totalApplications')}
             value={String(data.length)}
-            caption="All submitted jobs in tracker"
+            caption={t('applications.allSubmitted')}
             tone="blue"
             icon={<IconChartBar className="size-7" />}
           />
           <SummaryCard
-            label="Interview Stages"
+            label={t('applications.interviewStages')}
             value={String(statusCounts.Interview + statusCounts.Assessment)}
-            caption="Need follow-up this week"
+            caption={t('applications.needFollowUp')}
             tone="green"
             icon={<IconCircleCheckFilled className="size-7" />}
           />
           <SummaryCard
-            label="Offers"
+            label={t('dashboard.offers')}
             value={String(statusCounts.Offer)}
-            caption="Active negotiation opportunities"
+            caption={t('applications.activeNegotiation')}
             tone="amber"
             icon={<IconCalendarEvent className="size-7" />}
           />
           <SummaryCard
-            label="Response Rate"
+            label={t('applications.responseRate')}
             value={`${data.length ? Math.round(((data.length - statusCounts.Applied) / data.length) * 100) : 0}%`}
-            caption="Moved beyond applied stage"
+            caption={t('applications.movedBeyondApplied')}
             tone="indigo"
             icon={<IconProgress className="size-7" />}
           />
@@ -1149,15 +1165,15 @@ export function JobApplicationsTable() {
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-end mt-6">
           <div className="flex flex-wrap items-center gap-2 xl:justify-end">
             <TabsList>
-              <TabsTrigger value="applications">Applications</TabsTrigger>
+              <TabsTrigger value="applications">{t('common.applications')}</TabsTrigger>
               <TabsTrigger value="pipeline">
-                Pipeline <Badge variant="secondary">{data.length}</Badge>
+                {t('applications.pipeline')} <Badge variant="secondary">{data.length}</Badge>
               </TabsTrigger>
             </TabsList>
             <Button asChild>
               <Link href="/dashboard/applications/create">
               <IconPlus className="size-4" />
-              Add Application
+              {t('applications.addApplication')}
               </Link>
             </Button>
           </div>
@@ -1174,7 +1190,7 @@ export function JobApplicationsTable() {
               <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Search company, role, notes, recruiter..."
+                placeholder={t('applications.searchPlaceholder')}
                 value={
                   (table.getColumn('companyName')?.getFilterValue() as string) ?? ''
                 }
@@ -1192,16 +1208,16 @@ export function JobApplicationsTable() {
               defaultValue="all"
             >
               <SelectTrigger className="w-full md:w-44">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('applications.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="Applied">Applied</SelectItem>
-                <SelectItem value="Screening">Screening</SelectItem>
-                <SelectItem value="Interview">Interview</SelectItem>
-                <SelectItem value="Assessment">Assessment</SelectItem>
-                <SelectItem value="Offer">Offer</SelectItem>
-                <SelectItem value="Rejected">Rejected</SelectItem>
+                <SelectItem value="all">{t('applications.allStatuses')}</SelectItem>
+                <SelectItem value="Applied">{translateStatus(locale, 'Applied')}</SelectItem>
+                <SelectItem value="Screening">{translateStatus(locale, 'Screening')}</SelectItem>
+                <SelectItem value="Interview">{translateStatus(locale, 'Interview')}</SelectItem>
+                <SelectItem value="Assessment">{translateStatus(locale, 'Assessment')}</SelectItem>
+                <SelectItem value="Offer">{translateStatus(locale, 'Offer')}</SelectItem>
+                <SelectItem value="Rejected">{translateStatus(locale, 'Rejected')}</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -1213,15 +1229,15 @@ export function JobApplicationsTable() {
               defaultValue="all"
             >
               <SelectTrigger className="w-full md:w-44">
-                <SelectValue placeholder="Source" />
+                <SelectValue placeholder={t('applications.source')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All sources</SelectItem>
-                <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                <SelectItem value="Glints">Glints</SelectItem>
-                <SelectItem value="Jobstreet">Jobstreet</SelectItem>
-                <SelectItem value="Referral">Referral</SelectItem>
-                <SelectItem value="Company Website">Company Website</SelectItem>
+                <SelectItem value="all">{t('applications.allSources')}</SelectItem>
+                <SelectItem value="LinkedIn">{translateSource(locale, 'LinkedIn')}</SelectItem>
+                <SelectItem value="Glints">{translateSource(locale, 'Glints')}</SelectItem>
+                <SelectItem value="Jobstreet">{translateSource(locale, 'Jobstreet')}</SelectItem>
+                <SelectItem value="Referral">{translateSource(locale, 'Referral')}</SelectItem>
+                <SelectItem value="Company Website">{translateSource(locale, 'Company Website')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1229,7 +1245,7 @@ export function JobApplicationsTable() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns className="size-4" />
-                Columns
+                {t('common.columns')}
                 <IconChevronDown className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -1292,7 +1308,7 @@ export function JobApplicationsTable() {
                       colSpan={columns.length}
                       className="h-24 text-center text-muted-foreground"
                     >
-                      Loading applications...
+                      {t('applications.loading')}
                     </TableCell>
                   </TableRow>
                 ) : table.getRowModel().rows.length ? (
@@ -1307,7 +1323,7 @@ export function JobApplicationsTable() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No applications found.
+                      {t('applications.notFound')}
                     </TableCell>
                   </TableRow>
                 )}
@@ -1318,13 +1334,15 @@ export function JobApplicationsTable() {
 
         <div className="flex items-center justify-between px-1">
           <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} application(s) selected.
+            {t('applications.selectedRows', {
+              selected: table.getFilteredSelectedRowModel().rows.length,
+              total: table.getFilteredRowModel().rows.length,
+            })}
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
               <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
+                {t('applications.rowsPerPage')}
               </Label>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
@@ -1345,8 +1363,10 @@ export function JobApplicationsTable() {
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{' '}
-              {table.getPageCount()}
+              {t('applications.pageOf', {
+                current: table.getState().pagination.pageIndex + 1,
+                total: table.getPageCount(),
+              })}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
@@ -1396,13 +1416,13 @@ export function JobApplicationsTable() {
       <TabsContent value="pipeline" className="flex flex-col gap-4 px-4 lg:px-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold">Kanban pipeline</h3>
+            <h3 className="text-lg font-semibold">{t('applications.kanbanTitle')}</h3>
             <p className="text-sm text-muted-foreground">
-              Drag a card into another column to update its status.
+              {t('applications.kanbanDescription')}
             </p>
           </div>
           {isUpdatingStatus ? (
-            <Badge variant="secondary">Updating status...</Badge>
+            <Badge variant="secondary">{t('applications.updatingStatus')}</Badge>
           ) : null}
         </div>
 
@@ -1510,11 +1530,14 @@ export function JobApplicationsTable() {
       >
         <AlertDialogContent className="border-border bg-background/95 shadow-2xl dark:border-white/[0.05] dark:bg-[linear-gradient(135deg,rgba(30,33,46,0.94)_0%,rgba(17,17,19,0.98)_78%)] dark:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.02),0_24px_48px_rgba(0,0,0,0.3)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete application?</AlertDialogTitle>
+            <AlertDialogTitle>{t('applications.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete
-                ? `This will permanently remove ${pendingDelete.companyName} - ${pendingDelete.jobTitle} from your tracker. This action cannot be undone.`
-                : 'This action cannot be undone.'}
+                ? t('applications.deleteConfirmDescription', {
+                    company: pendingDelete.companyName,
+                    title: pendingDelete.jobTitle,
+                  })
+                : t('applications.deleteConfirmTitle')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1522,7 +1545,7 @@ export function JobApplicationsTable() {
               className="dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
               disabled={isDeleting}
             >
-              Cancel
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:shadow-[0_12px_30px_rgba(220,38,38,0.22)]"
@@ -1531,7 +1554,7 @@ export function JobApplicationsTable() {
                 void confirmDelete()
               }}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? t('applications.deleting') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

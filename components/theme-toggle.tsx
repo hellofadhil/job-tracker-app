@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Moon, Sun, Monitor } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useI18n } from '@/components/locale-provider'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ import {
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const { state } = useSidebar()
+  const { t } = useI18n()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -32,7 +34,7 @@ export function ThemeToggle() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton tooltip="Theme">
+            <SidebarMenuButton tooltip={t('common.theme')}>
               {activeTheme === 'dark' ? (
                 <Moon className="size-4" />
               ) : activeTheme === 'light' ? (
@@ -40,21 +42,21 @@ export function ThemeToggle() {
               ) : (
                 <Monitor className="size-4" />
               )}
-              {state !== 'collapsed' && <span>Theme</span>}
+              {state !== 'collapsed' && <span>{t('common.theme')}</span>}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => setTheme('light')}>
               <Sun className="size-4" />
-              Light
+              {t('common.light')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('dark')}>
               <Moon className="size-4" />
-              Dark
+              {t('common.dark')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('system')}>
               <Monitor className="size-4" />
-              System
+              {t('common.system')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

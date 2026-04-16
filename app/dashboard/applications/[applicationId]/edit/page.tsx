@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,6 +10,7 @@ import {
 import { EditApplicationForm } from '@/components/edit-application-form'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { defaultLocale, localeCookieName, normalizeLocale, tFor } from '@/lib/i18n'
 
 export default async function EditApplicationPage({
   params,
@@ -16,6 +18,10 @@ export default async function EditApplicationPage({
   params: Promise<{ applicationId: string }>
 }) {
   const { applicationId } = await params
+  const cookieStore = await cookies()
+  const locale = normalizeLocale(
+    cookieStore.get(localeCookieName)?.value ?? defaultLocale,
+  )
 
   return (
     <>
@@ -29,17 +35,19 @@ export default async function EditApplicationPage({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">
+                  {tFor(locale, 'common.dashboard')}
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink href="/dashboard/applications">
-                  Applications
+                  {tFor(locale, 'common.applications')}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Edit</BreadcrumbPage>
+                <BreadcrumbPage>{tFor(locale, 'common.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

@@ -8,6 +8,8 @@ import {
 } from "lucide-react"
 
 import { useAuth } from '@/components/auth-provider'
+import { LanguageToggle } from '@/components/language-toggle'
+import { useI18n } from '@/components/locale-provider'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -22,120 +24,38 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-      items: [
-        {
-          title: "Overview",
-          url: "/dashboard",
-        },
-        {
-          title: "Applications",
-          url: "/dashboard/applications",
-        },
-        // {
-        //   title: "Auth Pages",
-        //   url: "/login",
-        // },
-      ],
-    },
-    // {
-    //   title: "Pipeline",
-    //   url: "/dashboard/applications",
-    //   icon: Target,
-    //   items: [
-    //     {
-    //       title: "Applied",
-    //       url: "/dashboard/applications",
-    //     },
-    //     {
-    //       title: "Interview",
-    //       url: "/dashboard/applications",
-    //     },
-    //     {
-    //       title: "Offer",
-    //       url: "/dashboard/applications",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Resources",
-    //   url: "/dashboard/applications",
-    //   icon: BookOpen,
-    //   items: [
-    //     {
-    //       title: "LinkedIn leads",
-    //       url: "/dashboard/applications",
-    //     },
-    //     {
-    //       title: "Glints shortlist",
-    //       url: "/dashboard/applications",
-    //     },
-    //     {
-    //       title: "Referrals",
-    //       url: "/dashboard/applications",
-    //     },
-    //     {
-    //       title: "Career notes",
-    //       url: "/dashboard/applications",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Settings",
-    //   url: "/dashboard",
-    //   icon: Settings2,
-    //   items: [
-    //     {
-    //       title: "General",
-    //       url: "/dashboard",
-    //     },
-    //     {
-    //       title: "Account",
-    //       url: "/dashboard",
-    //     },
-    //     {
-    //       title: "Billing",
-    //       url: "/dashboard",
-    //     },
-    //     {
-    //       title: "Limits",
-    //       url: "/dashboard",
-    //     },
-    //   ],
-    // },
-  ],
-  // projects: [
-  //   {
-  //     name: "Frontend Roles",
-  //     url: "/dashboard/applications",
-  //     icon: BriefcaseBusiness,
-  //   },
-  //   {
-  //     name: "Internships",
-  //     url: "/dashboard/applications",
-  //     icon: PieChart,
-  //   },
-  //   {
-  //     name: "Referral Leads",
-  //     url: "/dashboard/applications",
-  //     icon: Map,
-  //   },
-  // ],
-}
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const { user } = useAuth()
+  const { t } = useI18n()
 
   if (!user) {
     return null
+  }
+
+  const data = {
+    navMain: [
+      {
+        title: t('sidebar.dashboard'),
+        url: '/dashboard',
+        icon: LayoutDashboard,
+        isActive: true,
+        items: [
+          {
+            title: t('sidebar.overview'),
+            url: '/dashboard',
+          },
+          {
+            title: t('sidebar.applications'),
+            url: '/dashboard/applications',
+          },
+          {
+            title: t('sidebar.resources'),
+            url: '/dashboard/resources',
+          },
+        ],
+      },
+    ],
   }
 
   return (
@@ -151,9 +71,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <BriefcaseBusiness className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">My Tracker Jobs</span>
+                <span className="truncate font-medium">
+                  {t('common.myTrackerJobs')}
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Private
+                  {t('common.private')}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -161,10 +83,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} pathname={pathname} />
+        <NavMain
+          items={data.navMain}
+          pathname={pathname}
+          groupLabel={t('common.platform')}
+        />
       </SidebarContent>
       <SidebarFooter>
         <ThemeToggle />
+        <LanguageToggle />
         <NavUser
           user={{
             name: user.displayName || 'Job Tracker User',

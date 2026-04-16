@@ -10,11 +10,10 @@ import {
   IconCircleCheckFilled,
   IconClockExclamation,
 } from '@tabler/icons-react'
+import { useI18n } from '@/components/locale-provider'
 import { useJobApplications } from '@/hooks/use-job-applications'
-import type {
-  JobApplication,
-  JobApplicationStatus,
-} from '@/lib/job-applications'
+import type { JobApplication, JobApplicationStatus } from '@/lib/job-applications'
+import { getLocaleDateFormat, translateStatus } from '@/lib/i18n'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,8 +25,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-US', {
+function formatDate(date: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -39,7 +38,6 @@ function getTodayKey() {
   const year = now.getFullYear()
   const month = `${now.getMonth() + 1}`.padStart(2, '0')
   const day = `${now.getDate()}`.padStart(2, '0')
-
   return `${year}-${month}-${day}`
 }
 
@@ -59,35 +57,23 @@ function getStatusBadge(status: JobApplicationStatus) {
   }
 }
 
-function getFollowUpPriority(
-  application: JobApplication,
-  today: string,
-) {
+function getFollowUpPriority(application: JobApplication, today: string) {
   if (!application.followUpDate) {
     return null
   }
 
   if (application.followUpDate < today) {
-    return {
-      tier: 0,
-      label: 'Overdue',
-    }
+    return { tier: 0 }
   }
 
   if (application.followUpDate === today) {
-    return {
-      tier: 1,
-      label: 'Today',
-    }
+    return { tier: 1 }
   }
 
   return null
 }
 
-function sortReminderApplications(
-  applications: JobApplication[],
-  today: string,
-) {
+function sortReminderApplications(applications: JobApplication[], today: string) {
   return [...applications].sort((left, right) => {
     const leftFollowUp = left.followUpDate ?? ''
     const rightFollowUp = right.followUpDate ?? ''
@@ -111,8 +97,10 @@ function sortReminderApplications(
 }
 
 export default function Page() {
+  const { locale, t } = useI18n()
   const { applications, loading } = useJobApplications()
   const today = getTodayKey()
+  const dateLocale = getLocaleDateFormat(locale)
 
   const statusCounts = applications.reduce<Record<JobApplicationStatus, number>>(
     (acc, item) => {
@@ -130,13 +118,7 @@ export default function Page() {
   )
 
   const reminders = sortReminderApplications(
-    applications.filter((item) => {
-      if (!item.followUpDate) {
-        return false
-      }
-
-      return item.followUpDate <= today
-    }),
+    applications.filter((item) => item.followUpDate && item.followUpDate <= today),
     today,
   )
 
@@ -154,7 +136,7 @@ export default function Page() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage>Overview</BreadcrumbPage>
+                <BreadcrumbPage>{t('common.overview')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -164,15 +146,16 @@ export default function Page() {
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">
-              Job tracker dashboard
+              {t('dashboard.title')}
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Keep your applications moving with live reminders, follow-up dates,
-              and one clear next action.
+              {t('dashboard.description')}
             </p>
           </div>
           <Button asChild>
-            <Link href="/dashboard/applications">Open applications page</Link>
+            <Link href="/dashboard/applications">
+              {t('dashboard.openApplications')}
+            </Link>
           </Button>
         </div>
 
@@ -182,26 +165,32 @@ export default function Page() {
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium tracking-wide text-blue-300 uppercase">
                   <IconClockExclamation className="size-3.5" />
-                  Next Action
+                  {t('dashboard.nextAction')}
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold tracking-tight">
-                    Follow up with {nextAction.companyName}
+                    {t('dashboard.followUpWith', {
+                      company: nextAction.companyName,
+                    })}
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {nextAction.jobTitle} · {nextAction.followUpDate === today ? 'Due today' : 'Overdue'} · {formatDate(nextAction.followUpDate ?? today)}
+                    {nextAction.jobTitle} ·{' '}
+                    {nextAction.followUpDate === today
+                      ? t('dashboard.dueToday')
+                      : t('dashboard.overdue')}{' '}
+                    · {formatDate(nextAction.followUpDate ?? today, dateLocale)}
                   </p>
                 </div>
                 <Badge
                   variant="outline"
                   className={getStatusBadge(nextAction.status)}
                 >
-                  {nextAction.status}
+                  {translateStatus(locale, nextAction.status)}
                 </Badge>
               </div>
               <Button asChild className="dark:bg-blue-600 dark:hover:bg-blue-500">
                 <Link href={`/dashboard/applications/${nextAction.id}/edit`}>
-                  Open follow-up
+                  {t('dashboard.openFollowUp')}
                   <IconArrowRight className="size-4" />
                 </Link>
               </Button>
@@ -214,10 +203,11 @@ export default function Page() {
                 <IconCircleCheckFilled className="size-7" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">No follow-ups due right now</h2>
+                <h2 className="text-xl font-semibold">
+                  {t('dashboard.noFollowUpsTitle')}
+                </h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  You do not have any overdue or today follow-up items. Add a
-                  follow-up date to an application to see it here.
+                  {t('dashboard.noFollowUpsDescription')}
                 </p>
               </div>
             </div>
@@ -226,19 +216,21 @@ export default function Page() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <OverviewCard
-            label="Applications"
+            label={t('dashboard.applicationsCount')}
             value={loading ? '...' : String(applications.length)}
             tone="blue"
             icon={<IconChartBar className="size-7" />}
           />
           <OverviewCard
-            label="In Interview Flow"
-            value={loading ? '...' : String(statusCounts.Interview + statusCounts.Assessment)}
+            label={t('dashboard.interviewFlow')}
+            value={
+              loading ? '...' : String(statusCounts.Interview + statusCounts.Assessment)
+            }
             tone="green"
             icon={<IconCircleCheckFilled className="size-7" />}
           />
           <OverviewCard
-            label="Offers"
+            label={t('dashboard.offers')}
             value={loading ? '...' : String(statusCounts.Offer)}
             tone="amber"
             icon={<IconCalendarEvent className="size-7" />}
@@ -248,9 +240,11 @@ export default function Page() {
         <div className="rounded-2xl border bg-card p-6 shadow-sm dark:border-white/[0.04] dark:bg-[#181818] dark:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.02),0_24px_48px_rgba(0,0,0,0.16)]">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Dashboard reminders</h2>
+              <h2 className="text-lg font-semibold">
+                {t('dashboard.remindersTitle')}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Applications with overdue follow-ups or actions due today.
+                {t('dashboard.remindersDescription')}
               </p>
             </div>
             <Badge variant="secondary">{reminders.length}</Badge>
@@ -272,12 +266,13 @@ export default function Page() {
                           {item.companyName} - {item.jobTitle}
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground">
-                          Follow-up: {formatDate(item.followUpDate ?? today)}
+                          {t('dashboard.followUpLabel')}:{' '}
+                          {formatDate(item.followUpDate ?? today, dateLocale)}
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className={getStatusBadge(item.status)}>
-                          {item.status}
+                          {translateStatus(locale, item.status)}
                         </Badge>
                         <Badge
                           variant="outline"
@@ -287,14 +282,16 @@ export default function Page() {
                               : 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300'
                           }
                         >
-                          {priority?.label}
+                          {priority?.tier === 0
+                            ? t('dashboard.overdue')
+                            : t('dashboard.dueToday')}
                         </Badge>
                       </div>
                     </div>
                     <div className="flex justify-end">
                       <Button asChild size="sm" variant="outline">
                         <Link href={`/dashboard/applications/${item.id}/edit`}>
-                          Open
+                          {t('common.open')}
                         </Link>
                       </Button>
                     </div>
@@ -305,7 +302,7 @@ export default function Page() {
           ) : (
             <div className="mt-5 flex items-start gap-3 rounded-2xl border bg-background/70 p-4 text-sm text-muted-foreground dark:border-white/[0.05] dark:bg-[#141414]">
               <IconAlertCircle className="mt-0.5 size-4 shrink-0" />
-              No follow-ups due right now.
+              {t('dashboard.noReminders')}
             </div>
           )}
         </div>

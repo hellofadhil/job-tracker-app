@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,8 +10,14 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { CreateApplicationForm } from '@/components/create-application-form'
+import { defaultLocale, localeCookieName, normalizeLocale, tFor } from '@/lib/i18n'
 
-export default function CreateApplicationPage() {
+export default async function CreateApplicationPage() {
+  const cookieStore = await cookies()
+  const locale = normalizeLocale(
+    cookieStore.get(localeCookieName)?.value ?? defaultLocale,
+  )
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/80 backdrop-blur">
@@ -23,17 +30,19 @@ export default function CreateApplicationPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">
+                  {tFor(locale, 'common.dashboard')}
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink href="/dashboard/applications">
-                  Applications
+                  {tFor(locale, 'common.applications')}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Create</BreadcrumbPage>
+                <BreadcrumbPage>{tFor(locale, 'common.create')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

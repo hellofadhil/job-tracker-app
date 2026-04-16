@@ -8,6 +8,7 @@ import {
   IconTimeline,
   IconTrash,
 } from '@tabler/icons-react'
+import { useI18n } from '@/components/locale-provider'
 import type {
   JobApplicationFormValues,
   JobApplicationTimelineCategory,
@@ -24,6 +25,13 @@ import {
   jobApplicationTypes,
   workModels,
 } from '@/lib/job-applications'
+import {
+  translateJobType,
+  translateSource,
+  translateStatus,
+  translateTimelineCategory,
+  translateWorkModel,
+} from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -82,6 +90,7 @@ export function ApplicationForm({
   onSubmit,
   loading = false,
 }: ApplicationFormProps) {
+  const { locale, t } = useI18n()
   const [form, setForm] = React.useState<ApplicationFormValues>({
     ...defaultApplicationFormValues,
     ...initialValues,
@@ -173,33 +182,32 @@ export function ApplicationForm({
       <form onSubmit={handleSubmit} className="grid gap-6">
         <Card className="overflow-hidden border-border shadow-sm dark:border-white/[0.04] dark:bg-[#181818] dark:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.02),0_24px_48px_rgba(0,0,0,0.16)]">
           <CardHeader className="bg-card dark:bg-[#181818]">
-            <CardTitle>Application Details</CardTitle>
+            <CardTitle>{t('form.applicationDetails')}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Fill the main job information exactly how you want it to appear in
-              the tracker.
+              {t('form.applicationDetailsDescription')}
             </p>
           </CardHeader>
           <CardContent className="grid gap-5 pt-2">
             <div className="grid gap-5 md:grid-cols-2">
               <Field>
-                <Label htmlFor="companyName">Company Name</Label>
+                <Label htmlFor="companyName">{t('form.companyName')}</Label>
                 <Input
                   id="companyName"
                   value={form.companyName}
                   onChange={(event) => updateField('companyName', event.target.value)}
                   className={fieldClassName}
-                  placeholder="Tokopedia"
+                  placeholder={t('form.companyPlaceholder')}
                   required
                 />
               </Field>
               <Field>
-                <Label htmlFor="jobTitle">Job Title</Label>
+                <Label htmlFor="jobTitle">{t('form.jobTitle')}</Label>
                 <Input
                   id="jobTitle"
                   value={form.jobTitle}
                   onChange={(event) => updateField('jobTitle', event.target.value)}
                   className={fieldClassName}
-                  placeholder="Frontend Engineer"
+                  placeholder={t('form.jobTitlePlaceholder')}
                   required
                 />
               </Field>
@@ -207,7 +215,7 @@ export function ApplicationForm({
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               <Field>
-                <Label>Job Type</Label>
+                <Label>{t('form.jobType')}</Label>
                 <Select
                   value={form.jobType}
                   onValueChange={(value) =>
@@ -215,19 +223,19 @@ export function ApplicationForm({
                   }
                 >
                   <SelectTrigger className={selectTriggerClassName}>
-                    <SelectValue placeholder="Select job type" />
+                    <SelectValue placeholder={t('form.selectJobType')} />
                   </SelectTrigger>
                   <SelectContent>
                     {jobApplicationTypes.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {item}
+                        {translateJobType(locale, item)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
-                <Label>Work Model</Label>
+                <Label>{t('form.workModel')}</Label>
                 <Select
                   value={form.workModel}
                   onValueChange={(value) =>
@@ -235,19 +243,19 @@ export function ApplicationForm({
                   }
                 >
                   <SelectTrigger className={selectTriggerClassName}>
-                    <SelectValue placeholder="Select work model" />
+                    <SelectValue placeholder={t('form.selectWorkModel')} />
                   </SelectTrigger>
                   <SelectContent>
                     {workModels.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {item}
+                        {translateWorkModel(locale, item)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
-                <Label>Source</Label>
+                <Label>{t('form.source')}</Label>
                 <Select
                   value={form.source}
                   onValueChange={(value) =>
@@ -255,19 +263,19 @@ export function ApplicationForm({
                   }
                 >
                   <SelectTrigger className={selectTriggerClassName}>
-                    <SelectValue placeholder="Select source" />
+                    <SelectValue placeholder={t('form.selectSource')} />
                   </SelectTrigger>
                   <SelectContent>
                     {jobApplicationSources.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {item}
+                        {translateSource(locale, item)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
-                <Label>Status</Label>
+                <Label>{t('form.status')}</Label>
                 <Select
                   value={form.status}
                   onValueChange={(value) =>
@@ -275,12 +283,12 @@ export function ApplicationForm({
                   }
                 >
                   <SelectTrigger className={selectTriggerClassName}>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder={t('form.selectStatus')} />
                   </SelectTrigger>
                   <SelectContent>
                     {jobApplicationStatuses.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {item}
+                        {translateStatus(locale, item)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -290,18 +298,18 @@ export function ApplicationForm({
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               <Field>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t('form.location')}</Label>
                 <Input
                   id="location"
                   value={form.location}
                   onChange={(event) => updateField('location', event.target.value)}
                   className={fieldClassName}
-                  placeholder="Jakarta, Indonesia"
+                  placeholder={t('form.locationPlaceholder')}
                   required
                 />
               </Field>
               <Field>
-                <Label htmlFor="applicationDate">Application Date</Label>
+                <Label htmlFor="applicationDate">{t('form.applicationDate')}</Label>
                 <Input
                   id="applicationDate"
                   type="date"
@@ -312,7 +320,7 @@ export function ApplicationForm({
                 />
               </Field>
               <Field>
-                <Label htmlFor="followUpDate">Follow-up Date</Label>
+                <Label htmlFor="followUpDate">{t('form.followUpDate')}</Label>
                 <Input
                   id="followUpDate"
                   type="date"
@@ -325,17 +333,17 @@ export function ApplicationForm({
 
             <div className="grid gap-5 md:grid-cols-2">
               <Field>
-                <Label htmlFor="salaryRange">Salary</Label>
+                <Label htmlFor="salaryRange">{t('form.salary')}</Label>
                 <Input
                   id="salaryRange"
                   value={form.salaryRange}
                   onChange={(event) => updateField('salaryRange', event.target.value)}
                   className={fieldClassName}
-                  placeholder="Rp 4.000.000 - 6.000.000 / month"
+                  placeholder={t('form.salaryPlaceholder')}
                 />
               </Field>
               <Field>
-                <Label htmlFor="recruiterContact">Recruiter / HR</Label>
+                <Label htmlFor="recruiterContact">{t('form.recruiter')}</Label>
                 <Input
                   id="recruiterContact"
                   value={form.recruiterContact}
@@ -343,31 +351,31 @@ export function ApplicationForm({
                     updateField('recruiterContact', event.target.value)
                   }
                   className={fieldClassName}
-                  placeholder="Kevin Tan - recruiter@company.com"
+                  placeholder={t('form.recruiterPlaceholder')}
                 />
               </Field>
             </div>
 
             <Field>
-              <Label htmlFor="jobLink">Job Link</Label>
+              <Label htmlFor="jobLink">{t('form.jobLink')}</Label>
               <Input
                 id="jobLink"
                 type="url"
                 value={form.jobLink}
                 onChange={(event) => updateField('jobLink', event.target.value)}
                 className={fieldClassName}
-                placeholder="https://company.com/jobs/frontend-engineer"
+                placeholder={t('form.jobLinkPlaceholder')}
               />
             </Field>
 
             <Field>
-              <Label htmlFor="notes">Job Description / Notes</Label>
+              <Label htmlFor="notes">{t('form.notes')}</Label>
               <Textarea
                 id="notes"
                 value={form.notes}
                 onChange={(event) => updateField('notes', event.target.value)}
                 className={`min-h-40 ${fieldClassName}`}
-                placeholder="Paste the job summary, interview notes, application strategy, or reminders here."
+                placeholder={t('form.notesPlaceholder')}
               />
             </Field>
 
@@ -377,11 +385,11 @@ export function ApplicationForm({
                   <div className="flex items-center gap-2">
                     <IconTimeline className="size-4 text-primary" />
                     <Label className="text-base font-semibold">
-                      Activity Timeline
+                      {t('form.activityTimeline')}
                     </Label>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Track recruiter replies, interviews, assessments, and follow-up actions in chronological order.
+                    {t('form.activityTimelineDescription')}
                   </p>
                 </div>
                 <Button
@@ -391,7 +399,7 @@ export function ApplicationForm({
                   onClick={addTimelineEntry}
                 >
                   <IconPlus className="size-4" />
-                  Add Activity
+                  {t('form.addActivity')}
                 </Button>
               </div>
 
@@ -404,7 +412,7 @@ export function ApplicationForm({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="text-sm font-medium">
-                          Activity {index + 1}
+                          {t('form.activity')} {index + 1}
                         </div>
                         <Button
                           type="button"
@@ -414,13 +422,13 @@ export function ApplicationForm({
                           onClick={() => removeTimelineEntry(entry.id)}
                         >
                           <IconTrash className="size-4" />
-                          Remove
+                          {t('form.remove')}
                         </Button>
                       </div>
                       <div className="grid gap-3 md:grid-cols-[180px_1fr]">
                         <Field>
                           <Label htmlFor={`timeline-date-${entry.id}`}>
-                            Date
+                            {t('form.date')}
                           </Label>
                           <Input
                             id={`timeline-date-${entry.id}`}
@@ -434,7 +442,7 @@ export function ApplicationForm({
                         </Field>
                         <Field>
                           <Label htmlFor={`timeline-category-${entry.id}`}>
-                            Category
+                            {t('form.category')}
                           </Label>
                           <Select
                             value={entry.category}
@@ -450,12 +458,12 @@ export function ApplicationForm({
                               id={`timeline-category-${entry.id}`}
                               className={selectTriggerClassName}
                             >
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder={t('form.selectCategory')} />
                             </SelectTrigger>
                             <SelectContent>
                               {jobApplicationTimelineCategories.map((category) => (
                                 <SelectItem key={category} value={category}>
-                                  {category}
+                                  {translateTimelineCategory(locale, category)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -465,7 +473,7 @@ export function ApplicationForm({
                       <div className="grid gap-3">
                         <Field>
                           <Label htmlFor={`timeline-title-${entry.id}`}>
-                            Title
+                            {t('form.title')}
                           </Label>
                           <Input
                             id={`timeline-title-${entry.id}`}
@@ -474,13 +482,13 @@ export function ApplicationForm({
                               updateTimelineEntry(entry.id, 'title', event.target.value)
                             }
                             className={fieldClassName}
-                            placeholder="Interview scheduled"
+                            placeholder={t('form.timelineTitlePlaceholder')}
                           />
                         </Field>
                       </div>
                       <Field>
                         <Label htmlFor={`timeline-description-${entry.id}`}>
-                          Description
+                          {t('form.description')}
                         </Label>
                         <Textarea
                           id={`timeline-description-${entry.id}`}
@@ -493,7 +501,7 @@ export function ApplicationForm({
                             )
                           }
                           className={`min-h-24 ${fieldClassName}`}
-                          placeholder="Add practical context: who replied, what changed, and what you need to do next."
+                          placeholder={t('form.timelineDescriptionPlaceholder')}
                         />
                       </Field>
                     </div>
@@ -502,7 +510,7 @@ export function ApplicationForm({
               ) : (
                 <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border/70 bg-background/60 p-4 text-sm text-muted-foreground dark:border-white/[0.05] dark:bg-[#111214]">
                   <IconCalendarEvent className="mt-0.5 size-4 shrink-0" />
-                  No activity yet. Add entries for recruiter replies, interviews, assessments, or important follow-up actions.
+                  {t('form.noActivityYet')}
                 </div>
               )}
             </div>
